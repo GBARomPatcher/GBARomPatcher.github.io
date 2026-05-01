@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 GBA Save and IPS Patcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .show {
+            display: block !important;
+        }
+
+        /* File Input */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        #romFile {
+            display: none;
+        }
+
+        .file-label {
+            display: block;
+            padding: 20px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .file-label:hover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+
+        .drop-zone.drag-over {
+            background: #e8ebff;
+            border-color: #764ba2;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .file-icon {
+            display: block;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .file-text {
+            display: block;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .file-hint {
+            display: block;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .file-info.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .file-info.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Checkboxes y Radio buttons */
+        .option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .option:hover {
+            background: #f8f9ff;
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .option-text {
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .radio-group {
+            margin-top: 10px;
+            margin-left: 28px;
+            padding: 10px;
+            background: #f8f9ff;
+            border-radius: 6px;
+        }
+
+        .radio-group.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .radio-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .radio-label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .patch-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .patch-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .patch-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .reset-btn:hover {
+            background: #e8e8e8;
+        }
+
+        /* Progress */
+        .progress-section {
+            margin-bottom: 30px;
+        }
+
+        .progress-section.hidden {
+            display: none;
+        }
+
+        .progress-section.show {
+            display: block;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e8e8e8;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .progress-steps {
+            font-size: 12px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: #999;
+        }
+
+        .step.completed {
+            color: #28a745;
+        }
+
+        .step.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .step-icon {
+            min-width: 16px;
+        }
+
+        /* Download Section */
+        .download-section {
+            text-align: center;
+        }
+
+        .download-section.hidden {
+            display: none;
+        }
+
+        .download-section.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 14px 28px;
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .download-filename {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        /* Log */
+        .log-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-section.hidden {
+            display: none;
+        }
+
+        .log-section.show {
+            display: block;
+        }
+
+        .log-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .log-content {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            color: #666;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tabs */
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-button {
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: #999;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-button:hover {
+            color: #667eea;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            button {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .tab-button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 GBA Save and IPS Patcher</h1>
+        <p class="subtitle">Cargar ROM y parchar...</p>
+
+        <!-- TAB BUTTONS -->
+        <div class="tab-buttons">
+            <button class="tab-button active" data-tab="saveFixTab">Arreglar Guardado</button>
+            <button class="tab-button" data-tab="ipsPatcherTab">IPS/BPS</button>
+        </div>
+
+        <!-- TAB 1: SAVE FIX PATCHER -->
+        <div id="saveFixTab" class="tab-content active">
+            <!-- FILE SELECTION -->
+            <div class="section">
+                <label for="romFile" class="file-label drop-zone" id="dropZone">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="romFile" accept=".gba" class="file-input">
+                        <div class="file-icon">📁</div>
+                        <div class="file-text">Arrastra ROM o haz clic para seleccionar</div>
+                        <div class="file-hint">Archivo .gba (máx 32MB)</div>
+                    </div>
+                </label>
+                <div id="fileInfo" class="file-info" style="display: none;"></div>
+            </div>
+
+            <!-- OPTIONS -->
+            <div class="section">
+                <div class="section-title">Opciones de Parche</div>
+
+                <label class="option">
+                    <input type="checkbox" id="enableSramPatching" checked>
+                    <span class="option-text">Habilitar Parche SRAM</span>
+                </label>
+
+                <label class="option">
+                    <input type="checkbox" id="enableBatteryPatching" checked>
+                    <span class="option-text">Habilitar Parche de Batería</span>
+                </label>
+
+                <div class="radio-group" id="batteryModeGroup">
+                    <div class="radio-option">
+                        <input type="radio" id="modeAuto" name="batteryMode" value="auto" checked>
+                        <label for="modeAuto" class="radio-label">Modo Auto (guardado automático)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="modeKeypad" name="batteryMode" value="keypad">
+                        <label for="modeKeypad" class="radio-label">Modo Keypad (guardado por botón)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="button-group">
+                <button id="patchButton" class="patch-btn" disabled>
+                    <span class="spinner" style="display: none;"></span>
+                    <span id="patchButtonText">Parchar ROM</span>
+                </button>
+            </div>
+
+            <!-- PROGRESS -->
+            <div class="progress-section hidden" id="progressSection">
+                <div class="progress-title">Procesando...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Inicializando...</div>
+                <div class="progress-steps" id="progressSteps"></div>
+            </div>
+
+            <!-- PROCESS LOG -->
+            <div id="statusMessages" style="max-height: 200px; overflow-y: auto; margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-family: monospace; font-size: 12px; color: #666; white-space: pre-wrap; word-wrap: break-word; display: none;"></div>
+
+            <!-- DOWNLOAD -->
+            <div class="download-section hidden" id="downloadSection">
+                <div class="success-message">✅ ¡Parche Completado!</div>
+                <a id="downloadLink" class="download-btn" download>
+                    <span class="download-text">⬇️ Descargar ROM Parcheada</span>
+                </a>
+                <div class="download-filename" id="downloadFilename"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: IPS/BPS PATCHER -->
+        <div id="ipsPatcherTab" class="tab-content">
+            <!-- ROM FILE SELECTION -->
+            <div class="section">
+                <div class="section-title">1. ROM Original</div>
+                <label for="ipsRomFile" class="file-label drop-zone" id="ipsRomDropZone">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="ipsRomFile" accept=".gba,.gbc,.gb" class="file-input">
+                        <div class="file-icon">📁</div>
+                        <div class="file-text">Arrastra ROM o haz clic para seleccionar</div>
+                        <div class="file-hint">Archivo .gba, .gbc, .gb</div>
+                    </div>
+                </label>
+                <div id="ipsRomFileInfo" class="file-info" style="display: none;"></div>
+            </div>
+
+            <!-- PATCH FILE SELECTION -->
+            <div class="section">
+                <div class="section-title">2. Archivo de Parche</div>
+                <label for="ipsPatchFile" class="file-label drop-zone" id="ipsPatchDropZone">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="ipsPatchFile" accept=".ips,.bps,.ups" class="file-input">
+                        <div class="file-icon">✨</div>
+                        <div class="file-text">Arrastra archivo de parche o haz clic para seleccionar</div>
+                        <div class="file-hint">Archivo .ips, .bps, .ups</div>
+                    </div>
+                </label>
+                <div id="ipsPatchFileInfo" class="file-info" style="display: none;"></div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="button-group">
+                <button id="ipsPatchButton" class="patch-btn" disabled>
+                    <span class="spinner" style="display: none;"></span>
+                    <span>Aplicar Parche</span>
+                </button>
+            </div>
+
+            <!-- PROGRESS -->
+            <div class="progress-section hidden" id="ipsProgressSection">
+                <div class="progress-title">Procesando...</div>
+                <div class="progress-steps" id="ipsProgressSteps"></div>
+            </div>
+
+            <!-- DOWNLOAD -->
+            <div class="download-section hidden" id="ipsDownloadWrapper">
+                <div class="success-message">✅ ¡Parche Completado!</div>
+                <a id="ipsDownloadLink" class="download-btn" download>
+                    <span class="download-text">⬇️ Descargar ROM Parcheada</span>
+                </a>
+                <div class="download-filename" id="ipsDownloadFilename"></div>
+            </div>
+        </div>
+
+        <!-- Hidden elements required by script.js -->
+        <div id="supportPrompt" style="display: none;"></div>
+        <button id="directDownloadBtn" style="display: none;"></button>
+        <a id="finalDownload" style="display: none;"></a>
+    </div>
+
+    <!-- Load the original scripts -->
+    <script src="./save-patcher.js"></script>
+    <script src="./ips-patcher.js"></script>
+
+    <!-- Tab and Reset Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // TAB SWITCHING
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked button and its content
+                    button.classList.add('active');
+                    const tabId = button.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Reset UI for the other tab
+                    resetAllTabs();
+                });
+            });
+
+            // RESET FUNCTIONS
+            function resetAllTabs() {
+                // Reset Save Fix Tab
+                const statusMessages = document.getElementById('statusMessages');
+                const downloadSection = document.getElementById('downloadSection');
+                const progressSection = document.getElementById('progressSection');
+                
+                if (statusMessages) statusMessages.textContent = '';
+                if (downloadSection) downloadSection.classList.add('hidden');
+                if (progressSection) progressSection.classList.add('hidden');
+                
+                // Reset IPS/BPS Tab
+                const ipsProgressSection = document.getElementById('ipsProgressSection');
+                const ipsDownloadWrapper = document.getElementById('ipsDownloadWrapper');
+                const ipsProgressSteps = document.getElementById('ipsProgressSteps');
+                
+                if (ipsProgressSection) ipsProgressSection.classList.add('hidden');
+                if (ipsDownloadWrapper) ipsDownloadWrapper.classList.add('hidden');
+                if (ipsProgressSteps) ipsProgressSteps.innerHTML = '';
+            }
+
+            // RESET SAVE FIX TAB when new ROM is selected
+            const romFileInput = document.getElementById('romFile');
+            if (romFileInput) {
+                romFileInput.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        const statusMessages = document.getElementById('statusMessages');
+                        const downloadSection = document.getElementById('downloadSection');
+                        if (statusMessages) statusMessages.textContent = '';
+                        if (downloadSection) downloadSection.classList.add('hidden');
+                    }
+                });
+            }
+
+            // RESET IPS/BPS TAB when files are selected
+            const ipsRomInput = document.getElementById('ipsRomFile');
+            const ipsPatchInput = document.getElementById('ipsPatchFile');
+            
+            if (ipsRomInput) {
+                ipsRomInput.addEventListener('change', function() {
+                    resetIpsPatcherTab();
+                });
+            }
+            
+            if (ipsPatchInput) {
+                ipsPatchInput.addEventListener('change', function() {
+                    resetIpsPatcherTab();
+                });
+            }
+            
+            function resetIpsPatcherTab() {
+                const ipsProgressSection = document.getElementById('ipsProgressSection');
+                const ipsDownloadWrapper = document.getElementById('ipsDownloadWrapper');
+                
+                if (ipsProgressSection) ipsProgressSection.classList.add('hidden');
+                if (ipsDownloadWrapper) ipsDownloadWrapper.classList.add('hidden');
+            }
+
+            // RESET when patch buttons are clicked
+            const patchButton = document.getElementById('patchButton');
+            const ipsPatchButton = document.getElementById('ipsPatchButton');
+
+            if (patchButton) {
+                patchButton.addEventListener('click', function() {
+                    const downloadSection = document.getElementById('downloadSection');
+                    if (downloadSection) downloadSection.classList.add('hidden');
+                });
+            }
+
+            if (ipsPatchButton) {
+                ipsPatchButton.addEventListener('click', function() {
+                    const ipsDownloadWrapper = document.getElementById('ipsDownloadWrapper');
+                    if (ipsDownloadWrapper) ipsDownloadWrapper.classList.add('hidden');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+</html>
